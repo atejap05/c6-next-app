@@ -86,7 +86,7 @@ export function Sidebar() {
               isActive ? activeClasses : inactiveClasses,
               "w-full justify-start"
             )}
-            legacyBehavior>
+          >
             {linkContent}
           </Link>
         </SheetClose>
@@ -104,7 +104,7 @@ export function Sidebar() {
         )}
         // Show tooltip when collapsed
         title={isCollapsed ? label : undefined}
-        legacyBehavior>
+      >
         {linkContent}
       </Link>
     );
@@ -123,10 +123,12 @@ export function Sidebar() {
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-6">
             <div className="mb-6">
-              <Link href="/" className="flex items-center space-x-2" legacyBehavior>
+              <Link href="/" className="flex items-center space-x-2">
                 {/* You can replace this with your app logo or name */}
-                <UploadCloud className="h-7 w-7 text-primary" />
-                <span className="text-xl font-semibold">FinanceApp</span>
+                <>
+                  <UploadCloud className="h-7 w-7 text-primary" />
+                  <span className="text-xl font-semibold">FinanceApp</span>
+                </>
               </Link>
             </div>
             <nav className="flex flex-col space-y-2">
@@ -152,15 +154,17 @@ export function Sidebar() {
             )}
           >
             {!isCollapsed && (
-              <Link href="/" className="flex items-center space-x-2" legacyBehavior>
-                <UploadCloud className="h-8 w-8 text-primary" />
-                <span className="text-2xl font-bold">FinanceApp</span>
+              <Link href="/" className="flex items-center space-x-2">
+                <>
+                  <UploadCloud className="h-8 w-8 text-primary" />
+                  <span className="text-2xl font-bold">FinanceApp</span>
+                </>
               </Link>
             )}
             {isCollapsed && ( // Show only icon when collapsed
-              (<Link href="/" className="flex items-center" legacyBehavior>
+              <Link href="/" className="flex items-center">
                 <UploadCloud className="h-8 w-8 text-primary" />
-              </Link>)
+              </Link>
             )}
             <Button
               variant="ghost"
