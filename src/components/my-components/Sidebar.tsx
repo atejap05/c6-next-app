@@ -26,9 +26,9 @@ import { useState } from "react";
 
 const navItems = [
   { href: "/", label: "Upload", icon: Home },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/visao-geral", label: "Visão Geral", icon: Eye },
-  { href: "/parcelas", label: "Parcelas", icon: Layers }, // Added Parcelas link
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/parcelas", label: "Parcelas", icon: Layers },
   { href: "/analysis", label: "Análises", icon: BarChart2 },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
