@@ -12,23 +12,21 @@ import {
 import {
   Menu,
   Home,
-  List,
   BarChart2,
   Settings,
   UploadCloud,
   Eye,
-  ChevronsLeft, // Import ChevronsLeft
-  ChevronsRight, // Import ChevronsRight
-  Layers, // Import Layers for Parcelas
+  ChevronsLeft,
+  ChevronsRight,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react"; // Import useState
+import { useState } from "react";
 
 const navItems = [
   { href: "/upload", label: "Upload Fatura", icon: UploadCloud },
   { href: "/visao-geral", label: "Visão Geral", icon: Eye },
   { href: "/", label: "Dashboard", icon: Home },
-  { href: "/transactions", label: "Transações", icon: List },
   { href: "/parcelas", label: "Parcelas", icon: Layers }, // Added Parcelas link
   { href: "/analysis", label: "Análises", icon: BarChart2 },
   { href: "/settings", label: "Configurações", icon: Settings },
