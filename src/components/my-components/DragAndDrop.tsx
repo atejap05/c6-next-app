@@ -47,29 +47,24 @@ export function DragAndDrop({
     setDragging(false);
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     if (accept && accept.trim() !== "") {
       const acceptedTypes = accept
         .split(",")
         .map(type => type.trim().toLowerCase());
       const fileTypeLower = file.type.toLowerCase();
-      // Garante que a extensão comece com "." e esteja em minúsculas
       const fileExtension = `.${
         file.name.split(".").pop()?.toLowerCase() || ""
       }`;
 
       let isValid = acceptedTypes.includes(fileTypeLower);
-
       if (!isValid && fileExtension !== ".") {
-        // Verifica a extensão apenas se ela existir
         isValid = acceptedTypes.includes(fileExtension);
       }
-
-      // Verificação de wildcards como "image/*" ou "text/*"
       if (!isValid) {
         isValid = acceptedTypes.some(acceptedType => {
           if (acceptedType.endsWith("/*")) {
-            const baseType = acceptedType.slice(0, -2); // ex: "image" de "image/*"
+            const baseType = acceptedType.slice(0, -2);
             return fileTypeLower.startsWith(baseType + "/");
           }
           return false;
@@ -86,13 +81,45 @@ export function DragAndDrop({
         return false;
       }
     }
-    setFileName(file.name);
-    onFileSelect(file);
-    setError(null); // Limpar erro em caso de sucesso
-    return true;
+
+    // Enviar o arquivo para o backend
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/process-csv", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || "Erro ao processar o arquivo.");
+        onFileSelect(null);
+        setFileName(null);
+        return false;
+      }
+
+      // Se o backend processar com sucesso
+      setFileName(file.name); // Ou `result.fileName` se preferir o nome retornado pelo backend
+      onFileSelect(file); // Manter o arquivo original no frontend ou usar dados do backend
+      setError(null);
+      console.log("Resposta do backend:", result); // Opcional: logar a resposta
+      // Você pode querer passar `result.data` ou `result.rowCount` para `onFileSelect`
+      // ou para um novo callback, dependendo da sua necessidade.
+      return true;
+    } catch (e) {
+      console.error("Erro ao enviar arquivo:", e);
+      const errorMessage = e instanceof Error ? e.message : "Erro de conexão.";
+      setError(`Erro ao enviar arquivo: ${errorMessage}`);
+      onFileSelect(null);
+      setFileName(null);
+      return false;
+    }
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault(); // Essencial para que o navegador não abra o arquivo
     e.stopPropagation();
     setDragging(false);
@@ -100,15 +127,15 @@ export function DragAndDrop({
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      processFile(files[0]);
+      await processFile(files[0]);
     }
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
     const files = e.target.files;
     if (files && files.length > 0) {
-      processFile(files[0]);
+      await processFile(files[0]);
     } else {
       // Isso pode ocorrer se o usuário abrir o diálogo e cancelar
       if (!fileName) {
