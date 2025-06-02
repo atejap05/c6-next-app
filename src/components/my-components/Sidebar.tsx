@@ -86,7 +86,7 @@ export function Sidebar() {
               isActive ? activeClasses : inactiveClasses,
               "w-full justify-start"
             )}
-          >
+            legacyBehavior>
             {linkContent}
           </Link>
         </SheetClose>
@@ -102,8 +102,9 @@ export function Sidebar() {
           "group",
           isCollapsed ? "justify-center" : "" // Center content when collapsed
         )}
-        title={isCollapsed ? label : undefined} // Show tooltip when collapsed
-      >
+        // Show tooltip when collapsed
+        title={isCollapsed ? label : undefined}
+        legacyBehavior>
         {linkContent}
       </Link>
     );
@@ -122,7 +123,7 @@ export function Sidebar() {
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-6">
             <div className="mb-6">
-              <Link href="/" className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2" legacyBehavior>
                 {/* You can replace this with your app logo or name */}
                 <UploadCloud className="h-7 w-7 text-primary" />
                 <span className="text-xl font-semibold">FinanceApp</span>
@@ -136,7 +137,6 @@ export function Sidebar() {
           </SheetContent>
         </Sheet>
       </div>
-
       {/* Desktop Sidebar (Fixed) */}
       <aside
         className={cn(
@@ -152,15 +152,15 @@ export function Sidebar() {
             )}
           >
             {!isCollapsed && (
-              <Link href="/" className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2" legacyBehavior>
                 <UploadCloud className="h-8 w-8 text-primary" />
                 <span className="text-2xl font-bold">FinanceApp</span>
               </Link>
             )}
             {isCollapsed && ( // Show only icon when collapsed
-              <Link href="/" className="flex items-center">
+              (<Link href="/" className="flex items-center" legacyBehavior>
                 <UploadCloud className="h-8 w-8 text-primary" />
-              </Link>
+              </Link>)
             )}
             <Button
               variant="ghost"
