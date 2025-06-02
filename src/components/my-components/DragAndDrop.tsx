@@ -9,12 +9,19 @@ import {
 } from "react";
 import { UploadCloud, X as XIcon } from "lucide-react";
 
+export interface ProcessedCsvData {
+  fileName: string;
+  rowCount: number;
+  headers: string[];
+  data: Record<string, string>[]; // Array de objetos, onde cada objeto representa uma linha
+}
+
 interface DragAndDropProps {
   /**
-   * Função chamada quando um arquivo é selecionado ou a seleção é limpa.
-   * Passa o arquivo selecionado ou `null`.
+   * Função chamada quando um arquivo é processado com sucesso pelo backend ou a seleção é limpa.
+   * Passa os dados processados do CSV ou `null`.
    */
-  onFileSelect: (file: File | null) => void;
+  onFileSelect: (data: ProcessedCsvData | null) => void;
   /**
    * String contendo os tipos de arquivo aceitos, separados por vírgula.
    * Exemplos: ".csv", "image/*", ".pdf,application/pdf", "text/csv,application/vnd.ms-excel,.csv"
@@ -102,12 +109,10 @@ export function DragAndDrop({
       }
 
       // Se o backend processar com sucesso
-      setFileName(file.name); // Ou `result.fileName` se preferir o nome retornado pelo backend
-      onFileSelect(file); // Manter o arquivo original no frontend ou usar dados do backend
+      setFileName(result.fileName);
+      onFileSelect(result as ProcessedCsvData); // Passar os dados processados do backend
       setError(null);
       console.log("Resposta do backend:", result); // Opcional: logar a resposta
-      // Você pode querer passar `result.data` ou `result.rowCount` para `onFileSelect`
-      // ou para um novo callback, dependendo da sua necessidade.
       return true;
     } catch (e) {
       console.error("Erro ao enviar arquivo:", e);
