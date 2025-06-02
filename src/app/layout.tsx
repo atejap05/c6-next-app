@@ -31,10 +31,7 @@ export default function RootLayout({
         <div className="flex min-h-screen">
           <Sidebar />
           <main className="flex-1 p-4 md:p-8 transition-all duration-300 ease-in-out md:ml-[var(--sidebar-width)]">
-            {/* The md:ml-64 is replaced by a CSS variable that will be set in globals.css or by JS */}
-            {/* Add a top bar for mobile if needed, or integrate menu into a header */}
-            <div className="md:hidden h-16"></div>{" "}
-            {/* Spacer for mobile fixed menu button */}
+            <div className="md:hidden h-16"></div>
             {children}
           </main>
         </div>
