@@ -19,14 +19,15 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Layers,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/upload", label: "Upload Fatura", icon: UploadCloud },
+  { href: "/", label: "Upload", icon: Home },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/visao-geral", label: "Visão Geral", icon: Eye },
-  { href: "/", label: "Dashboard", icon: Home },
   { href: "/parcelas", label: "Parcelas", icon: Layers }, // Added Parcelas link
   { href: "/analysis", label: "Análises", icon: BarChart2 },
   { href: "/settings", label: "Configurações", icon: Settings },
