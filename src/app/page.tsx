@@ -1,84 +1,76 @@
 "use client"; // Required for useState and other client-side hooks
 
-import { Button } from "@/components/ui/button";
-import {
-  DragAndDrop,
-  ProcessedCsvData,
-} from "@/components/my-components/DragAndDrop";
-import { TransactionTable } from "@/components/my-components/TransactionTable"; // Importar TransactionTable
-import { useState } from "react";
-
 export default function Home() {
-  const [processedData, setProcessedData] = useState<ProcessedCsvData | null>(
-    null
-  );
-
-  const handleFileProcessed = (data: ProcessedCsvData | null) => {
-    setProcessedData(data);
-    if (data) {
-      console.log("Dados do CSV processados:", data);
-      // Aqui você pode começar a usar os dados para popular os componentes Card, DataTable, Chart
-    } else {
-      console.log("Nenhum dado processado ou seleção limpa.");
-    }
-  };
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-foreground">
-      <div className="w-full max-w-prose space-y-8 rounded-xl bg-card/50 p-10 shadow-2xl backdrop-blur-md">
+    <main className="flex flex-col items-center justify-center p-8 text-foreground">
+      <div className="w-full max-w-4xl space-y-8">
         <div className="text-center ">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Análise de Gastos
+            Dashboard de Análise de Gastos
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Faça o upload da sua fatura de cartão de crédito em formato CSV para
-            visualizar seus gastos de forma inteligente.
+            Bem-vindo ao seu painel de controle financeiro.
           </p>
         </div>
-        <div className="space-y-6 text-center">
-          <DragAndDrop onFileSelect={handleFileProcessed} accept=".csv" />
 
-          {/* O botão de "Processar Fatura" pode ser removido ou ter sua lógica ajustada,
-              já que o processamento é disparado ao selecionar o arquivo. 
-              Se mantido, poderia servir para disparar uma nova análise ou visualização
-              dos dados já carregados (processedData).*/}
-          {processedData && (
-            <Button
-              type="button"
-              onClick={() =>
-                console.log("Visualizar dados detalhados", processedData)
-              } // Exemplo de ação
-              className="w-1/2 py-3 text-base font-semibold"
-            >
-              Visualizar Análise (Exemplo)
-            </Button>
-          )}
+        {/* KPI Cards Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Exemplo de Card - Substituir com dados reais */}
+          <div className="bg-card p-6 rounded-lg shadow-md">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Valor Total da Fatura
+            </h3>
+            <p className="text-2xl font-bold">R$ 0,00</p>
+          </div>
+          <div className="bg-card p-6 rounded-lg shadow-md">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Nº de Transações
+            </h3>
+            <p className="text-2xl font-bold">0</p>
+          </div>
+          <div className="bg-card p-6 rounded-lg shadow-md">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Gasto Médio
+            </h3>
+            <p className="text-2xl font-bold">R$ 0,00</p>
+          </div>
+          <div className="bg-card p-6 rounded-lg shadow-md">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Maior Despesa
+            </h3>
+            <p className="text-2xl font-bold">R$ 0,00</p>
+          </div>
         </div>
 
-        {/* Aqui você adicionará os componentes Card, DataTable e Chart */}
-        {processedData && (
-          <div className="mt-8 space-y-6">
-            <h2 className="text-2xl font-semibold text-center">
-              Resultados da Análise
-            </h2>
-
-            {/* Componente DataTable para exibir as transações */}
-            <TransactionTable processedData={processedData} />
-
-            {/* Exemplo de como você poderia começar a exibir os dados (pode ser removido ou adaptado) */}
-            <div className="p-4 border rounded-md bg-card/70">
-              <p>Arquivo: {processedData.fileName}</p>
-              <p>Total de Transações: {processedData.rowCount}</p>
-              <p>Cabeçalhos: {processedData.headers.join(", ")}</p>
-              {/* Idealmente, aqui entraria o DataTable */}
+        {/* Placeholder for Charts */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold text-center mb-4">
+            Visualizações Gráficas
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-card p-6 rounded-lg shadow-md min-h-[300px]">
+              <h3 className="text-lg font-semibold mb-2">
+                Gastos por Categoria
+              </h3>
+              <p className="text-muted-foreground">
+                Gráfico de Pizza/Rosca aqui...
+              </p>
             </div>
-            {/* Espaço para Cards e Charts */}
+            <div className="bg-card p-6 rounded-lg shadow-md min-h-[300px]">
+              <h3 className="text-lg font-semibold mb-2">
+                Top Estabelecimentos
+              </h3>
+              <p className="text-muted-foreground">Gráfico de Barras aqui...</p>
+            </div>
           </div>
-        )}
+        </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          O processamento do arquivo é feito no servidor.
-        </p>
+        {/* Link para a página de upload/detalhes */}
+        {/* <div className=\"mt-8 text-center\">
+          <Button asChild>
+            <Link href=\"/visao-geral\">Ver e Carregar Faturas</Link>
+          </Button>
+        </div> */}
       </div>
     </main>
   );
