@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Fatura {
+  id            String      @id @default(cuid())
+  nomeArquivo   String // Nome original do arquivo CSV, ex: "Fatura_2024-07-05.csv"
+  mesReferencia Int
+  anoReferencia Int
+  dataUpload    DateTime    @default(now())
+  transacoes    Transacao[]
+}
+
+model Transacao {
+  id            String     @id @default(cuid())
+  data          DateTime // Data da transação
+  descricao     String
+  valor         Decimal // Valor da transação. Assumindo positivo para despesas.
+  parcelaAtual  Int? // Número da parcela atual, ex: 1 (opcional)
+  totalParcelas Int? // Número total de parcelas, ex: 3 (opcional)
+  faturaId      String
+  fatura        Fatura     @relation(fields: [faturaId], references: [id], onDelete: Cascade)
+  cartaoId      String
+  cartao        Cartao     @relation(fields: [cartaoId], references: [id])
+  categoriaId   String?
+  categoria     Categoria? @relation(fields: [categoriaId], references: [id])
+
+  @@index([faturaId])
+  @@index([cartaoId])
+  @@index([categoriaId])
+}
+
+model Cartao {
+  id          String      @id @default(cuid())
+  finalCartao String      @unique // Ex: "0520"
+  nomeTitular String // Ex: "Joel Alves Pereira"
+  transacoes  Transacao[]
+}
+
+model Categoria {
+  id         String               @id @default(cuid())
+  nome       String               @unique
+  transacoes Transacao[]
+  regras     RegraCategorizacao[]
+}
+
+model RegraCategorizacao {
+  id           String    @id @default(cuid())
+  palavraChave String // Palavra-chave na descrição para aplicar a categoria
+  // Poderíamos adicionar um tipo de comparação aqui (ex: CONTÉM, IGUAL, COMEÇA_COM)
+  // Por simplicidade, vamos assumir "CONTÉM" por enquanto.
+  categoriaId  String
+  categoria    Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@index([categoriaId])
+}
