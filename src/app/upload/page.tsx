@@ -14,6 +14,7 @@ export default function UploadPage() {
     processedData,
     isLoading,
     error,
+    formattedFileName, // Destructure formattedFileName
   } = useCsvStore();
 
   const handleFileProcessed = async (file: File | null) => {
@@ -75,7 +76,9 @@ export default function UploadPage() {
   } else if (error) {
     feedbackMessage = error;
   } else if (processedData) {
-    feedbackMessage = `Arquivo "${processedData.fileName}" processado com sucesso! ${processedData.rowCount} linhas carregadas.`;
+    // Use formattedFileName if available, otherwise fallback to raw fileName
+    const displayName = formattedFileName || processedData.fileName;
+    feedbackMessage = `"${displayName}" processada com sucesso! ${processedData.rowCount} linhas carregadas.`;
   }
 
   return (

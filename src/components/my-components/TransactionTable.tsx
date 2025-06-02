@@ -162,18 +162,88 @@ export function TransactionTable({ processedData }: TransactionTableProps) {
             {paginatedData.length > 0 ? (
               paginatedData.map((row, rowIndex) => (
                 <TableRow key={rowIndex} className="hover:bg-muted/50">
-                  {displayHeaders.map(header => (
-                    <TableCell
-                      key={`${rowIndex}-${header}`}
-                      className="px-4 py-3 text-sm text-foreground whitespace-nowrap"
-                    >
-                      {row[header] !== undefined &&
-                      row[header] !== null &&
-                      row[header] !== ""
-                        ? row[header]
-                        : "-"}
-                    </TableCell>
-                  ))}
+                  {displayHeaders.map(header => {
+                    const originalCellValue = row[header];
+                    let displayContent: string | number = "-";
+                    let isNegativeValue = false;
+
+                    if (header === "Valor (em R$)") {
+                      if (
+                        typeof originalCellValue === "string" ||
+                        typeof originalCellValue === "number"
+                      ) {
+                        const sValue = String(originalCellValue)
+                          .replace(/[R$\s]/g, "") // Remove R$, spaces
+                          .replace(",", "."); // Convert decimal comma to dot for parseFloat
+                        const numericValue = parseFloat(sValue);
+
+                        if (!isNaN(numericValue)) {
+                          if (numericValue < 0) {
+                            isNegativeValue = true;
+                          }
+                          displayContent = numericValue.toLocaleString(
+                            "pt-BR",
+                            {
+                              style: "currency",
+                              currency: "BRL",
+                            }
+                          );
+                        } else if (
+                          originalCellValue !== undefined &&
+                          originalCellValue !== null &&
+                          String(originalCellValue).trim() !== ""
+                        ) {
+                          displayContent = String(originalCellValue); // Fallback if parsing fails
+                        }
+                      }
+                    } else if (header === "Valor (em US$)") {
+                      if (
+                        typeof originalCellValue === "string" ||
+                        typeof originalCellValue === "number"
+                      ) {
+                        // Basic cleaning for US$, assuming dot is decimal, comma might be thousands (removed)
+                        const sValue = String(originalCellValue).replace(
+                          /[US$\s,]/g,
+                          ""
+                        ); // Remove US$, spaces, and commas
+                        const numericValue = parseFloat(sValue);
+
+                        if (!isNaN(numericValue)) {
+                          if (numericValue < 0) {
+                            isNegativeValue = true;
+                          }
+                          // Display original US$ value, or numericValue.toFixed(2) for consistent decimals
+                          displayContent = String(originalCellValue);
+                        } else if (
+                          originalCellValue !== undefined &&
+                          originalCellValue !== null &&
+                          String(originalCellValue).trim() !== ""
+                        ) {
+                          displayContent = String(originalCellValue);
+                        }
+                      }
+                    } else {
+                      // For other columns
+                      if (
+                        originalCellValue !== undefined &&
+                        originalCellValue !== null &&
+                        String(originalCellValue).trim() !== ""
+                      ) {
+                        displayContent = String(originalCellValue);
+                      }
+                    }
+
+                    return (
+                      <TableCell
+                        key={`${rowIndex}-${header}`}
+                        className={`px-4 py-3 text-sm text-foreground whitespace-nowrap ${
+                          isNegativeValue ? "text-red-500" : ""
+                        }`}
+                      >
+                        {displayContent}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))
             ) : (

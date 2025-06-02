@@ -6,44 +6,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMemo } from "react"; // Import useMemo
 
-// Helper function to format the date from the filename
-const formatFileNameToDateTitle = (fileName: string): string => {
-  if (
-    !fileName ||
-    !fileName.startsWith("Fatura_") ||
-    !fileName.endsWith(".csv")
-  ) {
-    return fileName; // Return original if format is unexpected
-  }
-  try {
-    const datePart = fileName.substring(7, fileName.length - 4); // Extracts YYYY-MM-DD
-    const [year, month, day] = datePart.split("-").map(Number);
-
-    if (isNaN(year) || isNaN(month) || isNaN(day)) {
-      return fileName; // Return original if date parts are not numbers
-    }
-
-    const date = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript Date
-
-    // Check if the constructed date is valid (e.g., not an invalid date string)
-    if (isNaN(date.getTime())) {
-      return fileName; // Return original if date is invalid
-    }
-
-    const formattedDate = date.toLocaleDateString("pt-BR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    return `Fatura de ${formattedDate}`;
-  } catch (error) {
-    console.error("Error formatting file name:", error);
-    return fileName; // Return original filename in case of any error
-  }
-};
-
 export default function VisaoGeralPage() {
-  const { processedData, isLoading, error } = useCsvStore();
+  const { processedData, isLoading, error, formattedFileName } = useCsvStore(); // Added formattedFileName
 
   const summaryStats = useMemo(() => {
     if (!processedData || !processedData.data) {
@@ -107,7 +71,8 @@ export default function VisaoGeralPage() {
       {processedData && !isLoading && !error && (
         <div className="mt-8">
           <h2 className="text-2xl font-semibold mb-4">
-            {formatFileNameToDateTitle(processedData.fileName)}
+            {formattedFileName || processedData.fileName}{" "}
+            {/* Use formatted name from store */}
           </h2>
 
           {/* Summary Cards */}
