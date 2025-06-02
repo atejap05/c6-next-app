@@ -36,8 +36,9 @@ export default function VisaoGeralPage() {
             totalCharged += value;
           }
           if (
-            description &&
-            description.toLowerCase().includes("inclusao de pagamento")
+            (description &&
+              description.toLowerCase().includes("inclusao de pagamento")) ||
+            description.toLowerCase().includes("pagamento efetuado")
           ) {
             previousInvoicePayment += Math.abs(value); // Sum absolute values for payments
           }
