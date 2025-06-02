@@ -18,10 +18,10 @@ export interface ProcessedCsvData {
 
 interface DragAndDropProps {
   /**
-   * Função chamada quando um arquivo é processado com sucesso pelo backend ou a seleção é limpa.
-   * Passa os dados processados do CSV ou `null`.
+   * Função chamada quando um arquivo é selecionado ou a seleção é limpa.
+   * Passa o objeto File ou `null`.
    */
-  onFileSelect: (data: ProcessedCsvData | null) => void;
+  onFileSelect: (file: File | null) => void;
   /**
    * String contendo os tipos de arquivo aceitos, separados por vírgula.
    * Exemplos: ".csv", "image/*", ".pdf,application/pdf", "text/csv,application/vnd.ms-excel,.csv"
@@ -54,7 +54,7 @@ export function DragAndDrop({
     setDragging(false);
   };
 
-  const processFile = async (file: File) => {
+  const validateFile = (file: File): boolean => {
     if (accept && accept.trim() !== "") {
       const acceptedTypes = accept
         .split(",")
@@ -81,47 +81,14 @@ export function DragAndDrop({
       if (!isValid) {
         const userFriendlyAccept = accept
           .replace(/,/g, ", ")
-          .replace(/\/\*/g, "/*");
+          .replace(/\/\*/g, "/*"); // Corrected regex escape
         setError(`Formato inválido. Use: ${userFriendlyAccept}`);
-        onFileSelect(null);
+        onFileSelect(null); // Pass null if invalid
         setFileName(null);
-        return false;
+        return false; // Indicate failure
       }
     }
-
-    // Enviar o arquivo para o backend
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("/api/process-csv", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setError(result.error || "Erro ao processar o arquivo.");
-        onFileSelect(null);
-        setFileName(null);
-        return false;
-      }
-
-      // Se o backend processar com sucesso
-      setFileName(result.fileName);
-      onFileSelect(result as ProcessedCsvData); // Passar os dados processados do backend
-      setError(null);
-      console.log("Resposta do backend:", result); // Opcional: logar a resposta
-      return true;
-    } catch (e) {
-      console.error("Erro ao enviar arquivo:", e);
-      const errorMessage = e instanceof Error ? e.message : "Erro de conexão.";
-      setError(`Erro ao enviar arquivo: ${errorMessage}`);
-      onFileSelect(null);
-      setFileName(null);
-      return false;
-    }
+    return true;
   };
 
   const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
@@ -132,34 +99,37 @@ export function DragAndDrop({
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      await processFile(files[0]);
+      const file = files[0];
+      if (validateFile(file)) {
+        setFileName(file.name);
+        onFileSelect(file);
+      }
+    } else {
+      onFileSelect(null);
+      setFileName(null);
     }
   };
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    setError(null);
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      await processFile(files[0]);
-    } else {
-      // Isso pode ocorrer se o usuário abrir o diálogo e cancelar
-      if (!fileName) {
-        // Somente limpa se não houver arquivo já selecionado
-        onFileSelect(null);
+    setError(null); // Limpar erro ao selecionar novo arquivo
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      if (validateFile(file)) {
+        setFileName(file.name);
+        onFileSelect(file);
       }
+    } else {
+      setFileName(null);
+      onFileSelect(null); // Pass null if no file is selected
     }
+    // Resetar o input para permitir selecionar o mesmo arquivo novamente
+    e.target.value = "";
   };
 
-  const handleClearSelection = () => {
+  const handleClearFile = () => {
     setFileName(null);
     setError(null);
-    onFileSelect(null);
-    const inputElement = document.getElementById(
-      "fileInput-dragAndDrop" // ID único para o input
-    ) as HTMLInputElement;
-    if (inputElement) {
-      inputElement.value = ""; // Reset file input
-    }
+    onFileSelect(null); // Pass null when clearing
   };
 
   const openFileDialog = () => {
@@ -227,7 +197,7 @@ export function DragAndDrop({
               <button
                 onClick={e => {
                   e.stopPropagation(); // Evita que o openFileDialog seja acionado
-                  handleClearSelection();
+                  handleClearFile();
                 }}
                 className="p-1 text-slate-400 hover:text-red-400 transition-colors"
                 aria-label="Limpar seleção de arquivo"

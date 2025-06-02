@@ -1,36 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import {
-  DragAndDrop,
-  ProcessedCsvData,
-} from "@/components/my-components/DragAndDrop";
 import { TransactionTable } from "@/components/my-components/TransactionTable";
+import { useCsvStore } from "@/store/csvStore";
+import Link from "next/link";
 
 export default function VisaoGeralPage() {
-  const [processedData, setProcessedData] = useState<ProcessedCsvData | null>(
-    null
-  );
-
-  const handleFileProcessed = (data: ProcessedCsvData | null) => {
-    setProcessedData(data);
-    if (data) {
-      console.log("Dados do CSV processados na página Visão Geral:", data);
-    } else {
-      console.log("Nenhum dado processado ou seleção limpa na Visão Geral.");
-    }
-  };
+  const { processedData, isLoading, error } = useCsvStore();
 
   return (
     <div className="container mx-auto py-8 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Visão Geral das Transações</h1>
 
-      <div className="p-6 rounded-lg shadow-md bg-card">
-        <h2 className="text-xl font-semibold mb-4">Carregar Nova Fatura</h2>
-        <DragAndDrop onFileSelect={handleFileProcessed} accept=".csv" />
-      </div>
+      {isLoading && (
+        <p className="text-center text-muted-foreground mt-8">
+          Carregando dados...
+        </p>
+      )}
 
-      {processedData && (
+      {error && (
+        <p className="text-center text-red-500 mt-8">
+          Erro ao carregar dados: {error}
+        </p>
+      )}
+
+      {processedData && !isLoading && !error && (
         <div className="mt-8">
           <h2 className="text-2xl font-semibold mb-4">
             Detalhes da Fatura: {processedData.fileName}
@@ -39,11 +32,17 @@ export default function VisaoGeralPage() {
         </div>
       )}
 
-      {!processedData && (
-        <p className="text-center text-muted-foreground mt-8">
-          Nenhuma fatura carregada. Faça o upload de um arquivo CSV para ver as
-          transações.
-        </p>
+      {!processedData && !isLoading && !error && (
+        <div className="text-center mt-8 p-8 border-2 border-dashed border-muted rounded-lg">
+          <p className="text-muted-foreground mb-4">
+            Nenhuma fatura carregada.
+          </p>
+          <Link href="/upload" legacyBehavior>
+            <a className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+              Fazer Upload de Fatura
+            </a>
+          </Link>
+        </div>
       )}
     </div>
   );

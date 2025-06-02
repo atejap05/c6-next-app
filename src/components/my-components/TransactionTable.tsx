@@ -17,8 +17,8 @@ interface TransactionTableProps {
 }
 
 export function TransactionTable({ processedData }: TransactionTableProps) {
-  const [showValorUSD, setShowValorUSD] = useState(true);
-  const [showCotacaoBRL, setShowCotacaoBRL] = useState(true);
+  const [showValorUSD, setShowValorUSD] = useState(false);
+  const [showCotacaoBRL, setShowCotacaoBRL] = useState(false);
 
   // Moved useMemo before the early return
   const displayHeaders = useMemo(() => {
