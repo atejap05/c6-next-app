@@ -1,6 +1,6 @@
 # Analisador de Faturas de Cartão de Crédito C6
 
-Este é um projeto Next.js para analisar faturas de cartão de crédito em formato CSV, com foco na visualização de despesas e integração com banco de dados PostgreSQL usando Prisma.
+Este é um projeto Next.js para analisar faturas de cartão de crédito em formato CSV, com foco na visualização de despesas e integração com banco de dados PostgreSQL (Plataforma Neon) usando Prisma.
 
 ## Visão Geral
 
@@ -178,6 +178,7 @@ Siga os passos abaixo para configurar e rodar o projeto localmente:
    - Se o projeto for compartilhado ou acessado por múltiplos usuários, implementar um sistema de autenticação (ex: NextAuth.js).
 
 7. **Testes:**
+
    - Adicionar testes unitários e de integração para garantir a robustez da aplicação.
 
 Este README será atualizado conforme o projeto evolui.

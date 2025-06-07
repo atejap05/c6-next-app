@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/sheet";
 import {
   Menu,
-  Home,
   BarChart2,
   Settings,
   UploadCloud,
@@ -25,9 +24,9 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/", label: "Upload", icon: Home },
-  { href: "/visao-geral", label: "Visão Geral", icon: Eye },
+  { href: "/", label: "Visão Geral", icon: Eye }, // Changed from "Upload" to "Visão Geral"
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/transactions", label: "Transações", icon: Layers }, // Added transactions page
   { href: "/parcelas", label: "Parcelas", icon: Layers },
   { href: "/analysis", label: "Análises", icon: BarChart2 },
   { href: "/settings", label: "Configurações", icon: Settings },
@@ -179,7 +178,8 @@ export function Sidebar() {
               )}
             </Button>
           </div>
-          <nav className="flex-1 space-y-2">
+          <nav className="flex flex-col space-y-2 mt-4">
+            {/* Added mt-4 for spacing after logo/title */}
             {navItems.map(item => (
               <NavLink key={item.href} {...item} />
             ))}

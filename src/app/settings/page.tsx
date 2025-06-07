@@ -6,13 +6,108 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  DragAndDrop,
+  ProcessedCsvData,
+} from "@/components/my-components/DragAndDrop";
+import { useCsvStore } from "@/store/csvStore"; // Import useCsvStore
 
 export default function SettingsPage() {
-  // const { processedData, isLoading, error } = useCsvStore(); // Example if needed
+  const {
+    setProcessedData,
+    setIsLoading,
+    setError,
+    processedData,
+    isLoading,
+    error,
+    formattedFileName,
+  } = useCsvStore();
+
+  const handleFileProcessed = async (file: File | null) => {
+    if (!file) {
+      if (!error && !isLoading) {
+        setError("Nenhum arquivo selecionado ou seleção inválida.");
+      }
+      setProcessedData(null);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/process-csv", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "Falha ao processar o arquivo no backend."
+        );
+      }
+
+      const data: ProcessedCsvData = await response.json();
+      setProcessedData(data);
+      console.log("Dados do CSV processados e armazenados no Zustand:", data);
+    } catch (e: unknown) {
+      console.error("Erro no processamento do arquivo:", e);
+      let errorMessage = "Ocorreu um erro ao processar o arquivo.";
+      if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+      setError(errorMessage);
+      setProcessedData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  let feedbackMessage: string | null = null;
+  if (isLoading) {
+    feedbackMessage = "Processando arquivo...";
+  } else if (error) {
+    feedbackMessage = error;
+  } else if (processedData) {
+    const displayName = formattedFileName || processedData.fileName;
+    feedbackMessage = `"${displayName}" processada com sucesso! ${processedData.rowCount} linhas carregadas.`;
+  }
 
   return (
     <div className="container mx-auto py-8 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Configurações</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload de Nova Fatura (CSV)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Carregue um novo arquivo CSV de fatura para análise. Os dados serão
+            processados e armazenados para visualização nas outras seções do
+            aplicativo.
+          </p>
+          <DragAndDrop onFileSelect={handleFileProcessed} accept=".csv" />
+          {feedbackMessage && (
+            <p
+              className={`mt-4 text-center text-sm ${
+                error
+                  ? "text-red-500"
+                  : processedData && !isLoading
+                  ? "text-green-500"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {feedbackMessage}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <Card>
