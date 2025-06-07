@@ -79,8 +79,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Configurações</h1>
+    <div className="container mx-auto py-8 space-y-8 px-4 md:px-2">
+      <h1 className="text-3xl font-bold">Configurações</h1>
 
       <Card>
         <CardHeader>

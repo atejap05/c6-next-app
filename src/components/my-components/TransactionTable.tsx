@@ -8,7 +8,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { ProcessedCsvData } from "./DragAndDrop";
+import { ProcessedCsvData } from "@/store/csvStore"; // Changed import path
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {

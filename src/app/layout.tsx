@@ -30,8 +30,9 @@ export default function RootLayout({
       >
         <div className="flex min-h-screen">
           <Sidebar />
-          <main className="flex-1 p-4 md:p-8 transition-all duration-300 ease-in-out md:ml-[var(--sidebar-width)]">
-            <div className="md:hidden h-16"></div>
+          <main className="flex-1 transition-all duration-300 ease-in-out md:ml-[var(--sidebar-width)]">
+            {/* Spacer for the fixed mobile header in Sidebar.tsx - height should match mobile header */}
+            <div className="h-16 md:hidden"></div>
             {children}
           </main>
         </div>

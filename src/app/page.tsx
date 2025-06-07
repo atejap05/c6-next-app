@@ -1,14 +1,17 @@
 "use client";
 
 import { TransactionTable } from "@/components/my-components/TransactionTable";
-import { useCsvStore } from "@/store/csvStore";
+import { useCsvStore, ProcessedCsvData, Transaction } from "@/store/csvStore"; // Import ProcessedCsvData and Transaction
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMemo } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 // Define dummy data structure (matches ProcessedCsvData)
-const dummyProcessedData = {
-  fileName: "Fatura Demonstrativa (Exemplo Jun/2025)",
-  headers: ["Data", "Descrição", "Valor (em R$)", "Categoria"], // Added headers
+const dummyProcessedData: ProcessedCsvData = {
+  message: "Dados de exemplo", // Added message field
+  fileName: "Fatura Demonstrativa (Exemplo)",
+  headers: ["Data", "Descrição", "Valor (em R$)", "Categoria"],
   data: [
     {
       Data: "01/06/2025",
@@ -43,7 +46,7 @@ const dummyProcessedData = {
     {
       Data: "05/06/2025",
       Descrição: "INCLUSAO DE PAGAMENTO",
-      "Valor (em R$)": "-2000,00",
+      "Valor (em R$)": -2000.0, // Changed to number for consistency
       Categoria: "Pagamento",
     },
     {
@@ -58,18 +61,33 @@ const dummyProcessedData = {
       "Valor (em R$)": "60,25",
       Categoria: "Saúde",
     },
-  ],
-  rowCount: 8, // Reflects the number of dummy transactions
+  ] as Transaction[], // Cast to Transaction[]
+  rowCount: 8, // Re-added rowCount
 };
 
 export default function HomePage() {
-  const { processedData, isLoading, error, formattedFileName } = useCsvStore();
+  const { processedData, isLoading, error, formattedFileName, selectedPeriod } =
+    useCsvStore();
 
-  // Determine the data to display: store data if available, otherwise dummy data
-  const currentDisplayData = processedData || dummyProcessedData;
-  // Determine the file name to display
-  const displayFileName =
-    (processedData ? formattedFileName : null) || currentDisplayData.fileName;
+  const currentDisplayData: ProcessedCsvData =
+    processedData || dummyProcessedData;
+
+  const displayFileName = useMemo(() => {
+    if (processedData && formattedFileName) {
+      return formattedFileName;
+    }
+    if (selectedPeriod.startDate) {
+      return `Fatura de ${format(selectedPeriod.startDate, "MMMM/yyyy", {
+        locale: ptBR,
+      })}`;
+    }
+    return currentDisplayData.fileName;
+  }, [
+    processedData,
+    formattedFileName,
+    selectedPeriod.startDate,
+    currentDisplayData.fileName,
+  ]);
 
   const summaryStats = useMemo(() => {
     if (!currentDisplayData || !currentDisplayData.data) {
@@ -85,30 +103,37 @@ export default function HomePage() {
     const transactionCount = currentDisplayData.data.length;
 
     currentDisplayData.data.forEach(row => {
-      const valueString = row["Valor (em R$)"] || row["Valor"] || row["value"];
-      const description = row["Descrição"] || row["description"];
+      const valueInBRL = row["Valor (em R$)"] || row["Valor"] || row["value"];
+      let description = row["Descrição"] || row["description"];
 
-      if (valueString) {
-        const cleanedValueString = String(valueString)
+      if (typeof description !== "string") {
+        description = String(description ?? ""); // Convert to string, default to empty if null/undefined
+      }
+
+      let value: number | null = null;
+      if (typeof valueInBRL === "string") {
+        const cleanedValueString = valueInBRL
           .replace("R$", "")
-          .trim() // Remove leading/trailing whitespace
-          .replace(/\./g, "") // Remove thousand separators if used like 1.234,56
-          .replace(",", "."); // Replace decimal comma with point
-        const value = parseFloat(cleanedValueString);
+          .trim()
+          .replace(/\./g, "")
+          .replace(",", ".");
+        value = parseFloat(cleanedValueString);
+      } else if (typeof valueInBRL === "number") {
+        value = valueInBRL;
+      }
 
-        if (!isNaN(value)) {
-          if (value > 0) {
-            totalCharged += value;
-          }
-          if (
-            description &&
-            (description.toLowerCase().includes("inclusao de pagamento") ||
-              description.toLowerCase().includes("pagamento efetuado") ||
-              description.toLowerCase().includes("pagamento de fatura")) &&
-            value < 0
-          ) {
-            previousInvoicePayment += Math.abs(value);
-          }
+      if (value !== null && !isNaN(value)) {
+        if (value > 0) {
+          totalCharged += value;
+        }
+        if (
+          description &&
+          (description.toLowerCase().includes("inclusao de pagamento") ||
+            description.toLowerCase().includes("pagamento efetuado") ||
+            description.toLowerCase().includes("pagamento de fatura")) &&
+          value < 0
+        ) {
+          previousInvoicePayment += Math.abs(value);
         }
       }
     });
@@ -118,7 +143,7 @@ export default function HomePage() {
       transactionCount,
       previousInvoicePayment,
     };
-  }, [currentDisplayData]); // Dependency is now currentDisplayData
+  }, [currentDisplayData]);
 
   if (isLoading) {
     return (
@@ -138,13 +163,16 @@ export default function HomePage() {
     );
   }
 
-  // If not loading and no error, render the page with currentDisplayData (real or dummy)
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Visão Geral das Faturas</h1>
-
+    <div className="container mx-auto py-8 space-y-6 px-4 md:px-4">
+      {/* Removed md:pl-72, pt-20 md:pt-8. Padding is now handled by layout.tsx and container's own padding */}
+      {/* Added px-4 for mobile padding, md:px-0 to rely on container for desktop */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-3xl font-bold">Visão Geral das Faturas</h1>
+        {/* DatePicker removed from here, now in Sidebar */}
+      </div>
       <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">{displayFileName} </h2>
+        <h2 className="text-2xl font-semibold mb-4">{displayFileName}</h2>
 
         <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card>

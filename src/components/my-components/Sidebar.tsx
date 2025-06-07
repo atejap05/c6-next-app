@@ -19,14 +19,19 @@ import {
   ChevronsRight,
   Layers,
   LayoutDashboard,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { DatePicker } from "@/components/my-components/DatePicker";
+import { useCsvStore } from "@/store/csvStore";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const navItems = [
-  { href: "/", label: "Visão Geral", icon: Eye }, // Changed from "Upload" to "Visão Geral"
+  { href: "/", label: "Visão Geral", icon: Eye },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/transactions", label: "Transações", icon: Layers }, // Added transactions page
+  { href: "/transactions", label: "Transações", icon: Layers },
   { href: "/parcelas", label: "Parcelas", icon: Layers },
   { href: "/analysis", label: "Análises", icon: BarChart2 },
   { href: "/settings", label: "Configurações", icon: Settings },
@@ -34,7 +39,32 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false); // State for sidebar collapse
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { selectedPeriod, setSelectedPeriod } = useCsvStore();
+
+  // Define sidebar widths
+  const collapsedWidth = "80px"; // 5rem or w-20
+  const expandedWidth = "256px"; // 16rem or w-64
+
+  useEffect(() => {
+    // Update CSS variable for sidebar width
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isCollapsed ? collapsedWidth : expandedWidth
+    );
+  }, [isCollapsed]);
+
+  const [displayDate, setDisplayDate] = useState<Date | undefined>(
+    selectedPeriod.startDate
+  );
+
+  useEffect(() => {
+    setDisplayDate(selectedPeriod.startDate);
+  }, [selectedPeriod.startDate]);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedPeriod({ startDate: date });
+  };
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -53,7 +83,7 @@ export function Sidebar() {
   }) => {
     const isActive = pathname === href;
     const commonClasses =
-      "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors"; // Added transition-colors
+      "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors";
     const activeClasses = "bg-primary text-primary-foreground";
     const inactiveClasses =
       "text-muted-foreground hover:bg-muted hover:text-foreground";
@@ -62,15 +92,14 @@ export function Sidebar() {
       <>
         <Icon
           className={cn(
-            "h-5 w-5", // Removed mr-3 for collapsed state
+            "h-5 w-5",
             isActive
               ? "text-primary-foreground"
               : "text-muted-foreground group-hover:text-foreground",
-            isCollapsed && !isMobile ? "mx-auto" : "mr-3" // Center icon when collapsed on desktop
+            isCollapsed && !isMobile ? "mx-auto" : "mr-3"
           )}
         />
-        {(!isCollapsed || isMobile) && <span>{label}</span>}{" "}
-        {/* Hide label when collapsed on desktop */}
+        {(!isCollapsed || isMobile) && <span>{label}</span>}
       </>
     );
 
@@ -98,9 +127,8 @@ export function Sidebar() {
           commonClasses,
           isActive ? activeClasses : inactiveClasses,
           "group",
-          isCollapsed ? "justify-center" : "" // Center content when collapsed
+          isCollapsed ? "justify-center" : ""
         )}
-        // Show tooltip when collapsed
         title={isCollapsed ? label : undefined}
       >
         {linkContent}
@@ -111,55 +139,68 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile Sidebar (Sheet) */}
-      <div className="md:hidden p-4 fixed top-0 left-0 z-50">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Abrir menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-6">
-            <div className="mb-6">
-              <Link href="/" className="flex items-center space-x-2">
-                {/* You can replace this with your app logo or name */}
-                <>
+      <div className="md:hidden p-4 fixed top-0 left-0 z-50 bg-background border-b w-full">
+        <div className="flex justify-between items-center">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Abrir menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-6">
+              <div className="mb-6">
+                <Link href="/" className="flex items-center space-x-2">
                   <UploadCloud className="h-7 w-7 text-primary" />
                   <span className="text-xl font-semibold">FinanceApp</span>
-                </>
-              </Link>
-            </div>
-            <nav className="flex flex-col space-y-2">
-              {navItems.map(item => (
-                <NavLink key={item.href} {...item} isMobile={true} />
-              ))}
-            </nav>
-          </SheetContent>
-        </Sheet>
+                </Link>
+              </div>
+              <nav className="flex flex-col space-y-2">
+                {navItems.map(item => (
+                  <NavLink key={item.href} {...item} isMobile={true} />
+                ))}
+              </nav>
+              <div className="mt-6 pt-6 border-t">
+                <p className="mb-2 text-sm font-medium text-muted-foreground">
+                  Período Selecionado
+                </p>
+                <DatePicker date={displayDate} setDate={handleDateSelect} />
+              </div>
+            </SheetContent>
+          </Sheet>
+          {/* DatePicker for mobile view - header */}
+          <div className="flex items-center space-x-2">
+            <CalendarDays className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm font-medium">
+              {displayDate
+                ? format(displayDate, "MMMM/yyyy", { locale: ptBR })
+                : "Selecione o período"}
+            </span>
+          </div>
+        </div>
       </div>
+
       {/* Desktop Sidebar (Fixed) */}
       <aside
         className={cn(
-          "hidden md:flex md:flex-col md:fixed md:inset-y-0 md:border-r md:bg-background md:z-40 transition-all duration-300 ease-in-out", // Added transition-all
-          isCollapsed ? "md:w-20" : "md:w-64" // Dynamic width
+          "hidden md:flex md:flex-col md:fixed md:inset-y-0 md:border-r md:bg-background md:z-40 transition-all duration-300 ease-in-out",
+          isCollapsed ? "md:w-20" : "md:w-64" // Keeps direct style for immediate rendering
         )}
       >
         <div className="flex flex-col flex-grow p-4 overflow-y-auto">
           <div
             className={cn(
               "mb-8 flex items-center py-4",
-              isCollapsed ? "justify-center" : "justify-between" // Adjust logo and toggle button alignment
+              isCollapsed ? "justify-center" : "justify-between"
             )}
           >
             {!isCollapsed && (
               <Link href="/" className="flex items-center space-x-2">
-                <>
-                  <UploadCloud className="h-8 w-8 text-primary" />
-                  <span className="text-2xl font-bold">FinanceApp</span>
-                </>
+                <UploadCloud className="h-8 w-8 text-primary" />
+                <span className="text-2xl font-bold">FinanceApp</span>
               </Link>
             )}
-            {isCollapsed && ( // Show only icon when collapsed
+            {isCollapsed && (
               <Link href="/" className="flex items-center">
                 <UploadCloud className="h-8 w-8 text-primary" />
               </Link>
@@ -168,7 +209,7 @@ export function Sidebar() {
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="hidden md:inline-flex" // Show only on desktop
+              className="hidden md:inline-flex"
               aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
             >
               {isCollapsed ? (
@@ -179,11 +220,34 @@ export function Sidebar() {
             </Button>
           </div>
           <nav className="flex flex-col space-y-2 mt-4">
-            {/* Added mt-4 for spacing after logo/title */}
             {navItems.map(item => (
               <NavLink key={item.href} {...item} />
             ))}
           </nav>
+
+          {/* DatePicker section for Desktop */}
+          <div className="mt-auto pt-6 border-t">
+            {!isCollapsed && (
+              <p className="mb-2 text-sm font-medium text-muted-foreground px-3">
+                Período Selecionado
+              </p>
+            )}
+            {isCollapsed ? (
+              <div className="flex justify-center my-2">
+                <DatePicker
+                  date={displayDate}
+                  setDate={handleDateSelect}
+                  iconOnly={true}
+                />
+              </div>
+            ) : (
+              <DatePicker
+                date={displayDate}
+                setDate={handleDateSelect}
+                className="w-full"
+              />
+            )}
+          </div>
         </div>
       </aside>
     </>

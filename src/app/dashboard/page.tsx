@@ -16,7 +16,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 text-center">
+      <div className="container mx-auto py-8 text-center px-4 md:px-2">
         <p className="text-muted-foreground">
           Carregando dados do dashboard...
         </p>
@@ -26,7 +26,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-8 text-center">
+      <div className="container mx-auto py-8 text-center px-4 md:px-2">
         <p className="text-red-500">Erro ao carregar dados: {error}</p>
       </div>
     );
@@ -34,7 +34,7 @@ export default function DashboardPage() {
 
   if (!processedData) {
     return (
-      <div className="container mx-auto py-8 text-center">
+      <div className="container mx-auto py-8 text-center px-4 md:px-2">
         <div className="p-8 border-2 border-dashed border-muted rounded-lg">
           <h2 className="text-2xl font-semibold mb-4">
             Bem-vindo ao Dashboard
@@ -56,13 +56,15 @@ export default function DashboardPage() {
 
   // If data is loaded, show the dashboard content
   return (
-    <main className="container mx-auto py-8 space-y-6">
-      <h1 className="text-3xl font-bold mb-2">
-        Dashboard: {formattedFileName || processedData.fileName}
-      </h1>
-      <p className="text-muted-foreground mb-6">
-        Resumo financeiro e visualizações da sua fatura.
-      </p>
+    <div className="container mx-auto py-8 space-y-6 px-4 md:px-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-3xl font-bold mb-2">
+          Dashboard: {formattedFileName || processedData.fileName}
+        </h1>
+        <p className="text-muted-foreground mb-6">
+          Resumo financeiro e visualizações da sua fatura.
+        </p>
+      </div>
 
       {/* KPI Cards Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -133,6 +135,6 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

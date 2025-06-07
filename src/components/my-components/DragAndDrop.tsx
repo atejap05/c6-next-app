@@ -10,6 +10,7 @@ import {
 import { UploadCloud, X as XIcon } from "lucide-react";
 
 export interface ProcessedCsvData {
+  message: string; // Added message field
   fileName: string;
   rowCount: number;
   headers: string[];
