@@ -4,7 +4,13 @@ import { TransactionTable } from "@/components/my-components/TransactionTable";
 import { useCsvStore, ProcessedCsvData, Transaction } from "@/store/csvStore"; // Import ProcessedCsvData and Transaction
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMemo } from "react";
-import { format } from "date-fns";
+import {
+  format,
+  parse,
+  startOfMonth,
+  endOfMonth,
+  isWithinInterval,
+} from "date-fns"; // Added parse, startOfMonth, endOfMonth, isWithinInterval
 import { ptBR } from "date-fns/locale";
 
 // Define dummy data structure (matches ProcessedCsvData)
@@ -69,28 +75,109 @@ export default function HomePage() {
   const { processedData, isLoading, error, formattedFileName, selectedPeriod } =
     useCsvStore();
 
-  const currentDisplayData: ProcessedCsvData =
-    processedData || dummyProcessedData;
+  const baseDisplayData: ProcessedCsvData = processedData || dummyProcessedData;
 
   const displayFileName = useMemo(() => {
     if (processedData && formattedFileName) {
       return formattedFileName;
     }
     if (selectedPeriod.startDate) {
-      return `Fatura de ${format(selectedPeriod.startDate, "MMMM/yyyy", {
-        locale: ptBR,
-      })}`;
+      if (selectedPeriod.endDate) {
+        // Format for a range
+        const start = format(selectedPeriod.startDate, "MMMM/yyyy", {
+          locale: ptBR,
+        });
+        const end = format(selectedPeriod.endDate, "MMMM/yyyy", {
+          locale: ptBR,
+        });
+        return start === end
+          ? `Fatura de ${start}`
+          : `Faturas de ${start} a ${end}`;
+      } else {
+        // Format for a single month selection (start date only)
+        return `Fatura de ${format(selectedPeriod.startDate, "MMMM/yyyy", {
+          locale: ptBR,
+        })}`;
+      }
     }
-    return currentDisplayData.fileName;
+    return baseDisplayData.fileName; // Fallback to original file name or dummy
   }, [
     processedData,
     formattedFileName,
     selectedPeriod.startDate,
-    currentDisplayData.fileName,
+    selectedPeriod.endDate,
+    baseDisplayData.fileName,
   ]);
 
+  const filteredData = useMemo(() => {
+    if (!baseDisplayData || !baseDisplayData.data) {
+      return { ...baseDisplayData, data: [], rowCount: 0 };
+    }
+
+    const { startDate, endDate } = selectedPeriod;
+
+    if (!startDate) {
+      // If no start date, show all data from the source
+      return baseDisplayData;
+    }
+
+    // Define the interval for filtering
+    const effectiveStartDate = startOfMonth(startDate);
+    const effectiveEndDate = endDate
+      ? endOfMonth(endDate)
+      : endOfMonth(startDate); // If no end date, use end of start month
+
+    const data = baseDisplayData.data.filter(transaction => {
+      const dateString = transaction["Data"] as string; // Assuming 'Data' is the date column
+      if (!dateString) return false;
+
+      try {
+        // Attempt to parse common date formats, prioritizing dd/MM/yyyy
+        let transactionDate: Date;
+        if (dateString.includes("/") && dateString.split("/").length === 3) {
+          transactionDate = parse(dateString, "dd/MM/yyyy", new Date());
+        } else if (
+          dateString.includes("-") &&
+          dateString.split("-").length === 3
+        ) {
+          // Attempt ISO-like or yyyy-MM-dd
+          transactionDate = parse(dateString, "yyyy-MM-dd", new Date());
+          if (isNaN(transactionDate.getTime())) {
+            transactionDate = parse(dateString, "dd-MM-yyyy", new Date());
+          }
+        } else {
+          // Fallback for other potential formats or if it's already a parsable string
+          transactionDate = new Date(dateString);
+        }
+
+        if (isNaN(transactionDate.getTime())) {
+          console.warn(`Invalid date format for transaction: ${dateString}`);
+          return false; // Skip if date is not parsable
+        }
+        return isWithinInterval(transactionDate, {
+          start: effectiveStartDate,
+          end: effectiveEndDate,
+        });
+      } catch (e) {
+        console.warn(`Error parsing date for transaction: ${dateString}`, e);
+        return false; // Skip on parsing error
+      }
+    });
+
+    return {
+      ...baseDisplayData,
+      data,
+      rowCount: data.length,
+      message: startDate
+        ? `Exibindo transações para o período selecionado.`
+        : baseDisplayData.message,
+      fileName: displayFileName, // Update fileName to reflect the period
+    };
+  }, [baseDisplayData, selectedPeriod, displayFileName]);
+
   const summaryStats = useMemo(() => {
-    if (!currentDisplayData || !currentDisplayData.data) {
+    // Use filteredData instead of currentDisplayData
+    if (!filteredData || !filteredData.data) {
       return {
         totalCharged: 0,
         transactionCount: 0,
@@ -100,9 +187,10 @@ export default function HomePage() {
 
     let totalCharged = 0;
     let previousInvoicePayment = 0;
-    const transactionCount = currentDisplayData.data.length;
+    // Use filteredData.data.length for transactionCount
+    const transactionCount = filteredData.data.length;
 
-    currentDisplayData.data.forEach(row => {
+    filteredData.data.forEach(row => {
       const valueInBRL = row["Valor (em R$)"] || row["Valor"] || row["value"];
       let description = row["Descrição"] || row["description"];
 
@@ -143,7 +231,7 @@ export default function HomePage() {
       transactionCount,
       previousInvoicePayment,
     };
-  }, [currentDisplayData]);
+  }, [filteredData]); // Depend on filteredData
 
   if (isLoading) {
     return (
@@ -165,11 +253,8 @@ export default function HomePage() {
 
   return (
     <div className="container mx-auto py-8 space-y-6 px-4 md:px-4">
-      {/* Removed md:pl-72, pt-20 md:pt-8. Padding is now handled by layout.tsx and container's own padding */}
-      {/* Added px-4 for mobile padding, md:px-0 to rely on container for desktop */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-3xl font-bold">Visão Geral das Faturas</h1>
-        {/* DatePicker removed from here, now in Sidebar */}
       </div>
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-4">{displayFileName}</h2>
@@ -214,7 +299,7 @@ export default function HomePage() {
         </div>
 
         <h3 className="text-xl font-semibold mb-4">Detalhes das Transações</h3>
-        <TransactionTable processedData={currentDisplayData} />
+        <TransactionTable processedData={filteredData} />
       </div>
     </div>
   );

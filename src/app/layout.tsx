@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/my-components/Sidebar";
+import { StoreInitializer } from "@/components/my-components/StoreInitializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <div className="flex min-h-screen">
+          <StoreInitializer />
           <Sidebar />
           <main className="flex-1 transition-all duration-300 ease-in-out md:ml-[var(--sidebar-width)]">
             {/* Spacer for the fixed mobile header in Sidebar.tsx - height should match mobile header */}

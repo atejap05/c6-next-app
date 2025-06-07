@@ -27,6 +27,7 @@ import { DatePicker } from "@/components/my-components/DatePicker";
 import { useCsvStore } from "@/store/csvStore";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 
 const navItems = [
   { href: "/", label: "Visão Geral", icon: Eye },
@@ -54,16 +55,28 @@ export function Sidebar() {
     );
   }, [isCollapsed]);
 
-  const [displayDate, setDisplayDate] = useState<Date | undefined>(
+  // Adapt Zustand's selectedPeriod to DateRange for the DatePicker
+  const [currentPickerPeriod, setCurrentPickerPeriod] = useState<
+    DateRange | undefined
+  >(
     selectedPeriod.startDate
+      ? { from: selectedPeriod.startDate, to: selectedPeriod.endDate }
+      : undefined
   );
 
   useEffect(() => {
-    setDisplayDate(selectedPeriod.startDate);
-  }, [selectedPeriod.startDate]);
+    setCurrentPickerPeriod(
+      selectedPeriod.startDate
+        ? { from: selectedPeriod.startDate, to: selectedPeriod.endDate }
+        : undefined
+    );
+  }, [selectedPeriod]);
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedPeriod({ startDate: date });
+  const handlePickerPeriodChange = (newPickerPeriod: DateRange | undefined) => {
+    setSelectedPeriod({
+      startDate: newPickerPeriod?.from,
+      endDate: newPickerPeriod?.to,
+    });
   };
 
   const toggleSidebar = () => {
@@ -164,7 +177,10 @@ export function Sidebar() {
                 <p className="mb-2 text-sm font-medium text-muted-foreground">
                   Período Selecionado
                 </p>
-                <DatePicker date={displayDate} setDate={handleDateSelect} />
+                <DatePicker
+                  period={currentPickerPeriod}
+                  onPeriodChange={handlePickerPeriodChange}
+                />
               </div>
             </SheetContent>
           </Sheet>
@@ -172,8 +188,16 @@ export function Sidebar() {
           <div className="flex items-center space-x-2">
             <CalendarDays className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm font-medium">
-              {displayDate
-                ? format(displayDate, "MMMM/yyyy", { locale: ptBR })
+              {currentPickerPeriod?.from
+                ? currentPickerPeriod.to
+                  ? `${format(currentPickerPeriod.from, "MMM/yy", {
+                      locale: ptBR,
+                    })} - ${format(currentPickerPeriod.to, "MMM/yy", {
+                      locale: ptBR,
+                    })}`
+                  : format(currentPickerPeriod.from, "MMMM/yyyy", {
+                      locale: ptBR,
+                    })
                 : "Selecione o período"}
             </span>
           </div>
@@ -226,24 +250,26 @@ export function Sidebar() {
           </nav>
 
           {/* DatePicker section for Desktop */}
-          <div className="mt-auto pt-6 border-t">
+          <div className="mt-8 pt-6 border-t">
+            {" "}
+            {/* Adjusted margin-top from mt-auto to mt-8 */}
             {!isCollapsed && (
               <p className="mb-2 text-sm font-medium text-muted-foreground px-3">
-                Período Selecionado
+                Escolha o Período
               </p>
             )}
             {isCollapsed ? (
               <div className="flex justify-center my-2">
                 <DatePicker
-                  date={displayDate}
-                  setDate={handleDateSelect}
+                  period={currentPickerPeriod}
+                  onPeriodChange={handlePickerPeriodChange}
                   iconOnly={true}
                 />
               </div>
             ) : (
               <DatePicker
-                date={displayDate}
-                setDate={handleDateSelect}
+                period={currentPickerPeriod}
+                onPeriodChange={handlePickerPeriodChange}
                 className="w-full"
               />
             )}
