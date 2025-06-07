@@ -15,27 +15,30 @@ datasource db {
 }
 
 model Fatura {
-  id            String      @id @default(cuid())
-  nomeArquivo   String // Nome original do arquivo CSV, ex: "Fatura_2024-07-05.csv"
-  mesReferencia Int
-  anoReferencia Int
-  dataUpload    DateTime    @default(now())
-  transacoes    Transacao[]
+  id             String      @id @default(cuid())
+  nomeArquivo    String // Nome original do arquivo CSV, ex: "Fatura_2024-07-05.csv"
+  dataReferencia DateTime // Data de referência da fatura, ex: 2024-07-05 (do nome do arquivo ou campo "Data da Fatura")
+  dataUpload     DateTime    @default(now())
+  transacoes     Transacao[]
 }
 
 model Transacao {
-  id            String     @id @default(cuid())
-  data          DateTime // Data da transação
-  descricao     String
-  valor         Decimal // Valor da transação. Assumindo positivo para despesas.
-  parcelaAtual  Int? // Número da parcela atual, ex: 1 (opcional)
-  totalParcelas Int? // Número total de parcelas, ex: 3 (opcional)
-  faturaId      String
-  fatura        Fatura     @relation(fields: [faturaId], references: [id], onDelete: Cascade)
-  cartaoId      String
-  cartao        Cartao     @relation(fields: [cartaoId], references: [id])
-  categoriaId   String?
-  categoria     Categoria? @relation(fields: [categoriaId], references: [id])
+  id                String   @id @default(cuid())
+  data              DateTime // Data da compra/transação
+  descricao         String
+  valor             Decimal // Valor da transação (pode ser positivo ou negativo, conforme o extrato/CSV)
+  categoriaOriginal String? // Categoria como vem no CSV/extrato original
+  parcelaAtual      Int? // Número da parcela atual, ex: 1 (opcional)
+  totalParcelas     Int? // Número total de parcelas, ex: 3 (opcional)
+  valorUSD          Decimal? // Valor original em US$, se aplicável
+  cotacaoBRL        Decimal? // Cotação do dólar para transações em US$, se aplicável
+
+  faturaId    String
+  fatura      Fatura     @relation(fields: [faturaId], references: [id], onDelete: Cascade)
+  cartaoId    String
+  cartao      Cartao     @relation(fields: [cartaoId], references: [id])
+  categoriaId String?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
 
   @@index([faturaId])
   @@index([cartaoId])
